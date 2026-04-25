@@ -1,0 +1,98 @@
+spring:
+  application:
+    name: risk-engine
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: risk-engine
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "com.algo.risk.dto"
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+  r2dbc:
+    url: r2dbc:postgresql://${POSTGRES_HOST:localhost}:${POSTGRES_PORT:5432}/${POSTGRES_DB:risk}
+    username: ${POSTGRES_USER:risk}
+    password: ${POSTGRES_PASSWORD:risk}
+  sql:
+    init:
+      mode: always
+
+ibm:
+  mq:
+    queueManager: ${IBM_MQ_QUEUE_MANAGER:QM1}
+    channel: ${IBM_MQ_CHANNEL:DEV.APP.SVRCONN}
+    connName: ${IBM_MQ_CONN_NAME:localhost(1414)}
+    user: ${IBM_MQ_USER:app}
+    password: ${IBM_MQ_PASSWORD:passw0rd}
+
+app:
+  kafka:
+    orders-topic: order-events
+    decisions-topic: risk-decisions
+
+risk:
+  max-orders-per-second: 50
+  max-drawdown: 100000
+  max-exposure: 1000000
+  duplicate-order-ttl-seconds: 60
+  position-limits:
+    AAPL: 10000
+    TSLA: 5000
+    NQ_FUT: 100
+
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+  otlp:
+    metrics:
+      export:
+        url: ${OTLP_METRICS_URL:http://localhost:4318/v1/metrics}
+    tracing:
+      endpoint: ${OTLP_TRACES_URL:http://localhost:4318/v1/traces}
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  metrics:
+    tags:
+      application: risk-engine
+
+logging:
+  config: classpath:logback-spring.xml
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      kafkaPublisher:
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 20
+        minimumNumberOfCalls: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 10s
+      ibmMqRouter:
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 20
+        minimumNumberOfCalls: 10
+        failureRateThreshold: 40
+        waitDurationInOpenState: 10s
+      postgresAudit:
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 30
+        minimumNumberOfCalls: 10
+        failureRateThreshold: 30
+        waitDurationInOpenState: 10s
+      postgresTrade:
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 30
+        minimumNumberOfCalls: 10
+        failureRateThreshold: 30
+        waitDurationInOpenState: 10s

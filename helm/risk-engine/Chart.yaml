@@ -1,0 +1,6 @@
+apiVersion: v2
+name: risk-engine
+description: Reactive risk engine for algorithmic trading
+type: application
+version: 0.1.0
+appVersion: "0.0.1"

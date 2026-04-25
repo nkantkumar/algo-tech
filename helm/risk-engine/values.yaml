@@ -1,0 +1,49 @@
+replicaCount: 2
+
+image:
+  repository: gcr.io/PROJECT_ID/risk-engine
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+
+autoscaling:
+  hpa:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    averageCpuUtilization: 70
+  vpa:
+    enabled: true
+
+resources:
+  requests:
+    cpu: 500m
+    memory: 1Gi
+  limits:
+    cpu: 1000m
+    memory: 2Gi
+
+env:
+  KAFKA_BOOTSTRAP_SERVERS: "kafka:9092"
+  REDIS_HOST: "redis"
+  REDIS_PORT: "6379"
+  POSTGRES_HOST: "postgres"
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: "risk"
+  POSTGRES_USER: "risk"
+  POSTGRES_PASSWORD: "risk"
+  OTLP_METRICS_URL: "http://otel-collector:4318/v1/metrics"
+  OTLP_TRACES_URL: "http://otel-collector:4318/v1/traces"
+
+gcp:
+  gkeAutopilot: true
+  memorystoreHost: "10.0.0.3"
+  cloudSqlInstanceConnectionName: "project:region:risk-db"
+  workloadIdentity:
+    enabled: true
+    kubernetesServiceAccount: "risk-engine-ksa"
+    gcpServiceAccount: "risk-engine-gsa@PROJECT_ID.iam.gserviceaccount.com"
