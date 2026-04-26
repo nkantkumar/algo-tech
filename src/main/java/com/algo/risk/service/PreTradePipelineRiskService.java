@@ -8,6 +8,8 @@ import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import org.springframework.data.redis.core.RedisOperations;
+import org.springframework.data.redis.core.SessionCallback;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
@@ -43,17 +45,20 @@ public class PreTradePipelineRiskService {
         String rateKey = "rate:" + event.traderId() + ":" + secondBucket;
         String duplicateKey = "dup:" + event.orderId();
 
-        List<Object> results = redisTemplate.executePipelined((org.springframework.data.redis.core.SessionCallback<Object>) operations -> {
-            operations.opsForValue().get(positionKey);
-            operations.opsForValue().get(exposureKey);
-            operations.opsForValue().get(pnlKey);
-            operations.opsForValue().increment(rateKey);
-            operations.expire(rateKey, Duration.ofSeconds(2));
-            operations.opsForValue().setIfAbsent(
-                    duplicateKey,
-                    "1",
-                    Duration.ofSeconds(riskProperties.getDuplicateOrderTtlSeconds()));
-            return null;
+        List<Object> results = redisTemplate.executePipelined(new SessionCallback<Object>() {
+            @Override
+            public <K, V> Object execute(RedisOperations<K, V> operations) {
+                operations.opsForValue().get((K) positionKey);
+                operations.opsForValue().get((K) exposureKey);
+                operations.opsForValue().get((K) pnlKey);
+                operations.opsForValue().increment((K) rateKey);
+                operations.expire((K) rateKey, Duration.ofSeconds(2));
+                operations.opsForValue().setIfAbsent(
+                        (K) duplicateKey,
+                        (V) "1",
+                        Duration.ofSeconds(riskProperties.getDuplicateOrderTtlSeconds()));
+                return null;
+            }
         });
 
         long currentPosition = parseLong(results.get(0), 0L);
