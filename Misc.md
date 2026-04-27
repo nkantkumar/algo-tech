@@ -1,5 +1,12 @@
 
 Trading Typical services
+--    Identity Services
+        Handles:
+        Login
+        JWT/OAuth2
+        MFA
+        Session management
+        API keys
 --    Order management
         Tracks:
         order lifecycle
@@ -119,9 +126,11 @@ Trading Typical services
         mean reversion
         momentum
 
-Java / C++ / Rust / Go
+Java 
+spring
 Kafka
 Aeron
 Redis
-FPGA (sometimes)
 Kubernetes
+gcp
+oauth
