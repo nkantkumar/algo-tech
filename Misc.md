@@ -97,6 +97,27 @@ Trading Typical services
         OTPs
         risk alerts
 
+--   Reporting Service
+        Responsibilities:
+        immutable audit logs
+        regulatory reporting
+        trade history
+        replay systems
+
+--   Refrence Data Service
+        Stores:
+        symbols
+        exchange metadata
+        holidays
+        trading sessions
+        currency mappings
+--   Strategy/Algo engine
+        Examples:
+        HFT
+        arbitrage
+        market making
+        mean reversion
+        momentum
 
 Java / C++ / Rust / Go
 Kafka
